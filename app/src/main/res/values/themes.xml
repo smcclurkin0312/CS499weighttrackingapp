@@ -1,0 +1,17 @@
+<resources>
+    <!-- Theme Definitions -->
+    <style name="Theme.Project3_WTA_SM" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary Application Colors -->
+        <item name="colorPrimary">@color/light_green</item>
+        <item name="colorPrimaryVariant">@color/dark_ivy_green</item>
+        <item name="colorOnPrimary">@color/black</item>
+
+        <!-- Secondary Application Colors -->
+        <item name="colorSecondary">@color/ivy_green</item>
+        <item name="colorSecondaryVariant">@color/dark_ivy_green</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status Bar Color -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+    </style>
+</resources>

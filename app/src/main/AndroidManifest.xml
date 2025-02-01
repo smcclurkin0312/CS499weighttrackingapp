@@ -1,0 +1,37 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Permission to send SMS notifications -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- Telephony hardware to optional -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Project3_WTA_SM">
+
+        <!-- Main Page of app -->
+        <activity android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Managing SMS permissions -->
+        <activity android:name=".SMSPermissionActivity"
+            android:exported="false" />
+
+        <!-- Displaying and managing data grid -->
+        <activity android:name=".DataGridActivity"
+            android:exported="false" />
+
+    </application>
+</manifest>

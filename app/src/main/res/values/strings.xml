@@ -1,0 +1,42 @@
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Project3_WTA_SM</string>
+
+    <!-- Authentication -->
+    <string name="username_label">Username</string>
+    <string name="hint_username">Enter username</string>
+    <string name="password_label">Password</string>
+    <string name="hint_password">Enter password</string>
+    <string name="login_button">Log In</string>
+    <string name="register_button">Register</string>
+    <string name="login_button_description">Button to log in to the app</string>
+    <string name="register_button_description">Button to register a new account</string>
+
+    <!-- Data grid -->
+    <string name="goal_weight_label">Goal Weight</string>
+    <string name="current_goal_weight_default">Current Goal Weight: 0.0 lbs</string>
+    <string name="enter_new_goal">Enter new goal weight</string>
+    <string name="set_goal_button">Set Goal</string>
+    <string name="current_weight_label">Today\'s Weight</string>
+    <string name="todays_weight_default">Today\'s Weight: 0.0 lbs</string>
+    <string name="current_weight_value">Today\'s Weight: 0.0 lbs</string>
+    <string name="enter_todays_weight">Enter today\'s weight</string>
+    <string name="add_daily_weight_button">Add Daily Weight</string>
+    <string name="date_column_label">Date</string>
+    <string name="weight_column_label">Weight</string>
+    <string name="action_column_label">Action</string>
+    <string name="placeholder_date">Placeholder Date</string>
+    <string name="placeholder_weight">Placeholder Weight</string>
+    <string name="delete_button_text">X</string>
+
+    <!-- SMS permission -->
+    <string name="sms_permission_info">This app needs SMS permissions to send you notifications.</string>
+    <string name="enable_notifications">Enable Notifications</string>
+    <string name="disable_notifications">Disable Notifications</string>
+    <string name="sms_permission_button">Enable SMS Permission</string>
+    <string name="sms_permission_request_description">Request SMS permission to send notifications</string>
+
+    <!-- Weight formatting -->
+    <string name="current_goal_weight_format">Current Goal Weight: %.1f lbs</string>
+    <string name="current_weight_value_format">Today\'s Weight: %.1f lbs</string>
+</resources>

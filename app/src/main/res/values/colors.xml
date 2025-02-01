@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Basic Application Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Custom Application Colors -->
+    <color name="light_green">#A8E6CF</color>
+    <color name="ivy_green">#4CAF50</color>
+    <color name="dark_ivy_green">#004d00</color>
+</resources>
