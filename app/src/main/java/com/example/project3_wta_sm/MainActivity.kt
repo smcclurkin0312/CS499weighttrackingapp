@@ -8,13 +8,12 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
-// MUser login and registration functionality
+// User login and registration functionality
 class MainActivity : AppCompatActivity() {
 
     // Username and password input
     private var usernameInput: EditText? = null
     private var passwordInput: EditText? = null
-    // DatabaseHelper
     private var databaseHelper: DatabaseHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +33,7 @@ class MainActivity : AppCompatActivity() {
             val username = usernameInput?.text.toString().trim()
             val password = passwordInput?.text.toString().trim()
 
-            // Check if field(s) is emptu
+            // Check for empty fields
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please enter both your username and your password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -44,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             if (databaseHelper?.checkLogin(username, password) == true) {
                 Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, DataGridActivity::class.java)
-                startActivity(intent) // Launch successful login activity
+                startActivity(intent) // Successful login activity
             } else {
                 // Invalid login
                 Toast.makeText(this, "Incorrect login information.", Toast.LENGTH_SHORT).show()
@@ -74,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Close database connection when activity is completed
+    // Close database connection
     override fun onDestroy() {
         super.onDestroy()
         databaseHelper?.close()

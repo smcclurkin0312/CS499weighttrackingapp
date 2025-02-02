@@ -12,7 +12,7 @@
     <string name="login_button_description">Button to log in to the app</string>
     <string name="register_button_description">Button to register a new account</string>
 
-    <!-- Data grid -->
+    <!-- Data Grid -->
     <string name="goal_weight_label">Goal Weight</string>
     <string name="current_goal_weight_default">Current Goal Weight: 0.0 lbs</string>
     <string name="enter_new_goal">Enter new goal weight</string>
@@ -29,14 +29,37 @@
     <string name="placeholder_weight">Placeholder Weight</string>
     <string name="delete_button_text">X</string>
 
-    <!-- SMS permission -->
+    <!-- Weight Formatting -->
+    <string name="current_goal_weight_format">Current Goal Weight: %.1f lbs</string>
+    <string name="current_weight_value_format">Today\'s Weight: %.1f lbs</string>
+
+    <!-- Date Selection for Manual Weight Entry -->
+    <string name="selected_date_label">Selected Date: %s</string>
+    <string name="select_date_button">Select Date</string>
+
+    <!-- SMS Permission -->
     <string name="sms_permission_info">This app needs SMS permissions to send you notifications.</string>
     <string name="enable_notifications">Enable Notifications</string>
     <string name="disable_notifications">Disable Notifications</string>
     <string name="sms_permission_button">Enable SMS Permission</string>
     <string name="sms_permission_request_description">Request SMS permission to send notifications</string>
 
-    <!-- Weight formatting -->
-    <string name="current_goal_weight_format">Current Goal Weight: %.1f lbs</string>
-    <string name="current_weight_value_format">Today\'s Weight: %.1f lbs</string>
+    <!-- Weight Prediction -->
+    <string name="weight_prediction_button">Weight Prediction</string>
+    <string name="weight_prediction_description">Navigate to the weight prediction screen</string>
+    <string name="prediction_title">Weight Prediction</string>
+    <string name="calculate_prediction_button">Calculate Prediction</string>
+    <string name="prediction_result_placeholder">Your estimated weight trend will appear here.</string>
+    <string name="prediction_message">Predicting weight trend for %s…</string>
+    <string name="insufficient_data_message">Not enough weight data to make a prediction.</string>
+    <string name="prediction_result" formatted="false">Estimated weight in %d weeks: %.1f lbs</string>
+    <string name="graph_title">Weight Trend Over 4 Weeks</string>
+
+    <!-- Time Frame Options for Spinner -->
+    <string-array name="time_frame_options">
+        <item>1 Week</item>
+        <item>2 Weeks</item>
+        <item>3 Weeks</item>
+        <item>4 Weeks</item>
+    </string-array>
 </resources>

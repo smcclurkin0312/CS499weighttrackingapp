@@ -42,6 +42,7 @@ dependencies {
     androidTestImplementation libs.espresso.core
 
     implementation libs.kotlin.stdlib
+    implementation libs.mpandroidchart
 
     // For use of version catalog
     implementation libs.constraintlayout

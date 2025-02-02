@@ -33,5 +33,9 @@
         <activity android:name=".DataGridActivity"
             android:exported="false" />
 
+        <!-- Prediction Activity -->
+        <activity android:name=".PredictionActivity"
+            android:exported="false" />
+
     </application>
 </manifest>
