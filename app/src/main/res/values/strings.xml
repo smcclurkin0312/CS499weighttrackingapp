@@ -33,7 +33,7 @@
     <string name="current_goal_weight_format">Current Goal Weight: %.1f lbs</string>
     <string name="current_weight_value_format">Today\'s Weight: %.1f lbs</string>
 
-    <!-- Date Selection for Manual Weight Entry -->
+    <!-- Date Selection for Weight Entry -->
     <string name="selected_date_label">Selected Date: %s</string>
     <string name="select_date_button">Select Date</string>
 
@@ -54,6 +54,10 @@
     <string name="insufficient_data_message">Not enough weight data to make a prediction.</string>
     <string name="prediction_result" formatted="false">Estimated weight in %d weeks: %.1f lbs</string>
     <string name="graph_title">Weight Trend Over 4 Weeks</string>
+
+    <!-- Firebase Import & Export Data -->
+    <string name="export_data_button">Export Data to Firestore</string>
+    <string name="import_data_button">Import Data from Firestore</string>
 
     <!-- Time Frame Options for Spinner -->
     <string-array name="time_frame_options">

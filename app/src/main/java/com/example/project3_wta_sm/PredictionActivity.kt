@@ -9,21 +9,38 @@ import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.data.*
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
 
 class PredictionActivity : AppCompatActivity() {
+
+    private lateinit var databaseHelper: DatabaseHelper
+    private lateinit var auth: FirebaseAuth
+    private var userId: String? = null // Store the logged-in user ID
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_prediction)
 
-        // Initialize UI
+        // Initialize database and authentication
+        databaseHelper = DatabaseHelper(this)
+        auth = FirebaseAuth.getInstance()
+        userId = auth.currentUser?.email // Email is user ID
+
+        if (userId == null) {
+            Toast.makeText(this, "Error: No user logged in", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
+        // Initialize UI elements
         val timeFrameSpinner = findViewById<Spinner>(R.id.timeFrameSpinner)
         val calculateButton = findViewById<Button>(R.id.calculatePredictionButton)
         val predictionResult = findViewById<TextView>(R.id.predictionResultText)
         val weightTrendChart = findViewById<LineChart>(R.id.weightTrendChart)
 
-        // Load time frame options
+        // Load time frame options into spinner
         val adapter = ArrayAdapter.createFromResource(
             this,
             R.array.time_frame_options,
@@ -32,53 +49,68 @@ class PredictionActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         timeFrameSpinner.adapter = adapter
 
-        // Retrieve previous weight data
-        val databaseHelper = DatabaseHelper(this)
-        val weightEntries = databaseHelper.allDailyWeights
+        // Retrieve weight history from database
+        val weightEntries = databaseHelper.getAllDailyWeights(userId!!)
 
+        // Requires at least 2 entries
         if (weightEntries.size >= 2) {
-            generateWeightTrendChart(weightTrendChart, weightEntries) // Generate graph
+            generateWeightTrendChart(weightTrendChart, weightEntries)
         } else {
             weightTrendChart.clear()
         }
 
-        // Button click to calculate weight prediction for week(s)
+        // Calculate prediction
         calculateButton.setOnClickListener {
             val selectedWeeks = timeFrameSpinner.selectedItem.toString().split(" ")[0].toInt()
 
-            // Check for data before making a prediction
+            // Check for sufficient data
             if (weightEntries.size < 2) {
                 predictionResult.text = getString(R.string.insufficient_data_message)
                 return@setOnClickListener
             }
 
-            // Calculate average weekly weight change
+            // Compute time span between first and last entry
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val firstEntry = weightEntries.first()
             val lastEntry = weightEntries.last()
-            val weightChangePerWeek = ((lastEntry.weight - firstEntry.weight) / weightEntries.size).toFloat()
 
-            // Predict future weight based on time
-            val predictedWeight = lastEntry.weight + (weightChangePerWeek * selectedWeeks)
+            val firstDate = dateFormat.parse(firstEntry.date) ?: return@setOnClickListener
+            val lastDate = dateFormat.parse(lastEntry.date) ?: return@setOnClickListener
+            val daysBetween = ((lastDate.time - firstDate.time) / (1000 * 60 * 60 * 24)).toFloat()
 
-            // Display predicted weight for week
+            // Weight calculations set to use Float
+            val weightChangePerDay: Float = if (daysBetween > 0) {
+                (lastEntry.weight.toFloat() - firstEntry.weight.toFloat()) / daysBetween
+            } else {
+                0f
+            }
+            val weightChangePerWeek: Float = weightChangePerDay * 7
+
+            // Predict future weight based on actual weight trend
+            val predictedWeight: Float = lastEntry.weight.toFloat() + (weightChangePerWeek * selectedWeeks)
+
+            // Pass the float directly
             predictionResult.text = getString(R.string.prediction_result, selectedWeeks, predictedWeight)
         }
     }
 
+    // Generates weight trend chart with recorded and predicted weight trends
     private fun generateWeightTrendChart(chart: LineChart, pastWeights: List<DataGridItem>) {
-        val recordedEntries = mutableListOf<Entry>() // Stores recorded weight data points
-        val predictedEntries = mutableListOf<Entry>() // Stores predicted weight data points
-        val labels = mutableListOf<String>() // Stores x-axis labels
+        val recordedEntries = mutableListOf<Entry>()
+        val predictedEntries = mutableListOf<Entry>()
+        val labels = mutableListOf<String>()
 
-        // Use last 4 weeks of recorded data or available user data
-        val filteredWeights = pastWeights.takeLast(28) // 4 weeks (7 days * 4)
+        // Gett last 4 weeks of data or available user data
+        val filteredWeights = pastWeights.takeLast(28)
 
-        // Dates on x-axis
+        // Format for dates
         val dateFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
 
-        // Weight data points and labels at 4-day intervals
+        // Populate recorded weight data points and X-axis labels
         for ((index, data) in filteredWeights.withIndex()) {
             recordedEntries.add(Entry(index.toFloat(), data.weight.toFloat()))
+
+            // Label every 4th data point
             if (index % 4 == 0) {
                 labels.add(dateFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(data.date)!!))
             } else {
@@ -86,44 +118,56 @@ class PredictionActivity : AppCompatActivity() {
             }
         }
 
-        // Retrieve last recorded weight
-        val lastRecordedWeight = filteredWeights.lastOrNull()?.weight?.toFloat() ?: return
-        val lastIndex = recordedEntries.size.toFloat()
+        // Get last recorded weight
+        val lastRecordedWeight: Float = filteredWeights.lastOrNull()?.weight?.toFloat() ?: return
+        val lastIndex: Float = recordedEntries.size.toFloat()
 
-        // Last recorded weight into first predicted point
+        // First prediction point based on last recorded weight
         predictedEntries.add(Entry(lastIndex, lastRecordedWeight))
         labels.add("Start Prediction")
 
-        // Predicted weight points for up to 4 weeks
+        // Weight trend formula
+        val firstEntry = filteredWeights.first()
+        val firstWeight = firstEntry.weight.toFloat()
+        val totalWeeks = filteredWeights.size / 7f
+        val weeklyWeightChange = if (totalWeeks > 0) {
+            (lastRecordedWeight - firstWeight) / totalWeeks
+        } else {
+            0f
+        }
+
+        // Predicted weight trend for up to 4 weeks
         for (week in 1..4) {
-            val futureIndex = (lastIndex + (week * 7)).toFloat()
-            val projectedWeight = lastRecordedWeight - (week * (lastRecordedWeight - 170f) / 4f)
+            val futureIndex = (lastIndex + (week * 7))
+            val projectedWeight = lastRecordedWeight + (weeklyWeightChange * week)
 
             predictedEntries.add(Entry(futureIndex, projectedWeight))
             labels.add("Week $week")
         }
 
-        // Create recorded weight trend (blue line)
-        val recordedDataSet = LineDataSet(recordedEntries, "Recorded Weight")
-        recordedDataSet.color = Color.BLUE
-        recordedDataSet.valueTextColor = Color.BLACK
-        recordedDataSet.setCircleColor(Color.BLUE)
-        recordedDataSet.lineWidth = 2f
-        recordedDataSet.circleRadius = 4f
-        recordedDataSet.setDrawValues(false)
+        // Recorded Weight (Blue Line)
+        val recordedDataSet = LineDataSet(recordedEntries, "Recorded Weight").apply {
+            color = Color.BLUE
+            valueTextColor = Color.BLACK
+            setCircleColor(Color.BLUE)
+            lineWidth = 2f
+            circleRadius = 4f
+            setDrawValues(false)
+        }
 
-        // Create predicted weight trend (red dashed line)
-        val predictedDataSet = LineDataSet(predictedEntries, "Predicted Weight")
-        predictedDataSet.color = Color.RED
-        predictedDataSet.valueTextColor = Color.BLACK
-        predictedDataSet.setCircleColor(Color.RED)
-        predictedDataSet.lineWidth = 2f
-        predictedDataSet.circleRadius = 4f
-        predictedDataSet.enableDashedLine(10f, 5f, 0f)
-        predictedDataSet.setDrawValues(false)
+        // Predicted Weight (Red Dashed Line)
+        val predictedDataSet = LineDataSet(predictedEntries, "Predicted Weight").apply {
+            color = Color.RED
+            valueTextColor = Color.BLACK
+            setCircleColor(Color.RED)
+            lineWidth = 2f
+            circleRadius = 4f
+            enableDashedLine(10f, 5f, 0f)
+            setDrawValues(false)
+        }
 
-        val lineData = LineData(recordedDataSet, predictedDataSet)
-        chart.data = lineData
+        // Update chart data
+        chart.data = LineData(recordedDataSet, predictedDataSet)
 
         // Chart appearance
         chart.description = Description().apply { text = "Weight Trend (Recorded & Predicted)" }
@@ -135,12 +179,13 @@ class PredictionActivity : AppCompatActivity() {
 
         // X-axis labels
         val xAxis = chart.xAxis
-        xAxis.setLabelCount(labels.size / 4, true) // Display labels every 4 days
+        xAxis.setLabelCount(labels.size / 4, true)
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.granularity = 5f
         xAxis.isGranularityEnabled = true
 
-        chart.invalidate() // Refresh chart
+        // Refresh chart
+        chart.invalidate()
     }
 }

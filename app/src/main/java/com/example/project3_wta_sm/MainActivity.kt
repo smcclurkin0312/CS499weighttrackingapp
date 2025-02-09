@@ -2,80 +2,143 @@ package com.example.project3_wta_sm
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.*
 
-// User login and registration functionality
+// Main activity for user authentication
 class MainActivity : AppCompatActivity() {
 
-    // Username and password input
+    // UI elements for username and password input
     private var usernameInput: EditText? = null
     private var passwordInput: EditText? = null
-    private var databaseHelper: DatabaseHelper? = null
+    private lateinit var databaseHelper: DatabaseHelper
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Connect UI XML to Kotlin variables
+        // Connects UI elements to variables
         usernameInput = findViewById(R.id.editTextText)
         passwordInput = findViewById(R.id.editTextText2)
         val loginButton = findViewById<Button>(R.id.button)
         val registerButton = findViewById<Button>(R.id.button2)
 
         databaseHelper = DatabaseHelper(this)
+        auth = FirebaseAuth.getInstance() // Firebase authentication
 
-        // Listener for login button
-        loginButton.setOnClickListener { _: View? ->
+        checkUserSession()
+
+        // Login button click with user authentication
+        loginButton.setOnClickListener {
             val username = usernameInput?.text.toString().trim()
             val password = passwordInput?.text.toString().trim()
 
-            // Check for empty fields
+            println("DEBUG: Login button clicked - Username: $username")
+
+            // Validate input fields
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter both your username and your password", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter both your username and password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Check login info
-            if (databaseHelper?.checkLogin(username, password) == true) {
-                Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, DataGridActivity::class.java)
-                startActivity(intent) // Successful login activity
-            } else {
-                // Invalid login
-                Toast.makeText(this, "Incorrect login information.", Toast.LENGTH_SHORT).show()
+            // Username follows email format for Firebase authentication
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(username).matches()) {
+                Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Login in background to prevent issues with skipped frames
+            CoroutineScope(Dispatchers.IO).launch {
+                val loginSuccess = databaseHelper.checkLogin(username, password)
+
+                withContext(Dispatchers.Main) {
+                    if (loginSuccess) {
+                        Toast.makeText(this@MainActivity, "Login successful", Toast.LENGTH_SHORT).show()
+                        navigateToDataGrid(username)
+                    } else {
+                        // Firebase authentication if local login fails
+                        auth.signInWithEmailAndPassword(username, password)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val firebaseUser = auth.currentUser
+                                    val firebaseUsername = firebaseUser?.email ?: "Unknown User"
+                                    Toast.makeText(this@MainActivity, "Firebase Login successful", Toast.LENGTH_SHORT).show()
+                                    navigateToDataGrid(firebaseUsername)
+                                } else {
+                                    Toast.makeText(this@MainActivity, "Incorrect login information.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                    }
+                }
             }
         }
 
-        // Listener for register button
-        registerButton.setOnClickListener { _: View? ->
+        // Register button click for new user registration
+        registerButton.setOnClickListener {
             val username = usernameInput?.text.toString().trim()
             val password = passwordInput?.text.toString().trim()
 
-            // Check for empty field
+            println("DEBUG: Register button clicked - Username: $username")
+
+            // Validate input fields
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter both your username and your password", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter both your username and password", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Insert new login info to database
-            if (databaseHelper?.insertLogin(username, password) == true) {
-                Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show()
-                usernameInput?.setText("")
-                passwordInput?.setText("")
-            } else {
-                // Invalid registration
-                Toast.makeText(this, "Registration failed", Toast.LENGTH_SHORT).show()
+            // Ensure username email format for Firebase authentication
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(username).matches()) {
+                Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Registration in SQLite database
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = databaseHelper.insertLogin(this@MainActivity, username, password)
+
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        Toast.makeText(this@MainActivity, "Registration successful", Toast.LENGTH_SHORT).show()
+                        usernameInput?.setText("")
+                        passwordInput?.setText("")
+                    }
+
+                    // Register in Firebase as well
+                    auth.createUserWithEmailAndPassword(username, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(this@MainActivity, "Firebase Registration successful", Toast.LENGTH_SHORT).show()
+                                usernameInput?.setText("")
+                                passwordInput?.setText("")
+                            } else {
+                                Toast.makeText(this@MainActivity, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                }
             }
         }
     }
 
-    // Close database connection
+    // New user session when app is opened
+    private fun checkUserSession() {
+        auth.signOut()
+    }
+
+    // Navigates to DataGridActivity after successful login
+    private fun navigateToDataGrid(username: String) {
+        val intent = Intent(this, DataGridActivity::class.java)
+        intent.putExtra("USERNAME", username)
+        startActivity(intent)
+    }
+
+    // Closes database connection
     override fun onDestroy() {
         super.onDestroy()
-        databaseHelper?.close()
+        databaseHelper.close()
     }
 }

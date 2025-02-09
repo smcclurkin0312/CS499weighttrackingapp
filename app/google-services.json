@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "83638183410",
+    "project_id": "cs499-wta-smcclurkin",
+    "storage_bucket": "cs499-wta-smcclurkin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83638183410:android:67396a3311a940b429f76b",
+        "android_client_info": {
+          "package_name": "com.example.project3_wta_sm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8OaGeV4kCr0bRmU6irzp8InnHb4VSatg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
