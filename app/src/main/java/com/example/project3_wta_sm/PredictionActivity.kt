@@ -94,13 +94,12 @@ class PredictionActivity : AppCompatActivity() {
         }
     }
 
-    // Generates weight trend chart with recorded and predicted weight trends
+    // Generates weight trend chart with only recorded weight trends
     private fun generateWeightTrendChart(chart: LineChart, pastWeights: List<DataGridItem>) {
         val recordedEntries = mutableListOf<Entry>()
-        val predictedEntries = mutableListOf<Entry>()
         val labels = mutableListOf<String>()
 
-        // Gett last 4 weeks of data or available user data
+        // Get last 4 weeks of data or available user data
         val filteredWeights = pastWeights.takeLast(28)
 
         // Format for dates
@@ -110,39 +109,12 @@ class PredictionActivity : AppCompatActivity() {
         for ((index, data) in filteredWeights.withIndex()) {
             recordedEntries.add(Entry(index.toFloat(), data.weight.toFloat()))
 
-            // Label every 4th data point
+            // Label 4th data points
             if (index % 4 == 0) {
                 labels.add(dateFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(data.date)!!))
             } else {
                 labels.add("")
             }
-        }
-
-        // Get last recorded weight
-        val lastRecordedWeight: Float = filteredWeights.lastOrNull()?.weight?.toFloat() ?: return
-        val lastIndex: Float = recordedEntries.size.toFloat()
-
-        // First prediction point based on last recorded weight
-        predictedEntries.add(Entry(lastIndex, lastRecordedWeight))
-        labels.add("Start Prediction")
-
-        // Weight trend formula
-        val firstEntry = filteredWeights.first()
-        val firstWeight = firstEntry.weight.toFloat()
-        val totalWeeks = filteredWeights.size / 7f
-        val weeklyWeightChange = if (totalWeeks > 0) {
-            (lastRecordedWeight - firstWeight) / totalWeeks
-        } else {
-            0f
-        }
-
-        // Predicted weight trend for up to 4 weeks
-        for (week in 1..4) {
-            val futureIndex = (lastIndex + (week * 7))
-            val projectedWeight = lastRecordedWeight + (weeklyWeightChange * week)
-
-            predictedEntries.add(Entry(futureIndex, projectedWeight))
-            labels.add("Week $week")
         }
 
         // Recorded Weight (Blue Line)
@@ -155,22 +127,10 @@ class PredictionActivity : AppCompatActivity() {
             setDrawValues(false)
         }
 
-        // Predicted Weight (Red Dashed Line)
-        val predictedDataSet = LineDataSet(predictedEntries, "Predicted Weight").apply {
-            color = Color.RED
-            valueTextColor = Color.BLACK
-            setCircleColor(Color.RED)
-            lineWidth = 2f
-            circleRadius = 4f
-            enableDashedLine(10f, 5f, 0f)
-            setDrawValues(false)
-        }
-
-        // Update chart data
-        chart.data = LineData(recordedDataSet, predictedDataSet)
+        chart.data = LineData(recordedDataSet)
 
         // Chart appearance
-        chart.description = Description().apply { text = "Weight Trend (Recorded & Predicted)" }
+        chart.description = Description().apply { text = "Current Recorded Weight Progress Graph" }
         chart.setBackgroundColor(Color.WHITE)
         chart.setDrawGridBackground(false)
         chart.xAxis.setDrawGridLines(false)
